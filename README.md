@@ -5,8 +5,18 @@ It was written for use in a tech talk about how to debug unsafe code.
 
 ## Build and Test
 ```
+# One-time setup
+cargo +stable install cargo-llvm-cov --locked
+
+# Run a static lint analysis
+cargo clippy
+
+# Compile the code and run the tests
 cargo build
 cargo test
+
+# Measure the test coverage
+cargo llvm-cov --html
 ```
 The tests may pass, depending on platform implementation details and
 some random chance. But that doesn't mean the code is sound.
