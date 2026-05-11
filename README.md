@@ -31,7 +31,17 @@ MIRIFLAGS="-Zmiri-disable-isolation" cargo +nightly miri test --no-fail-fast
 ```
 This should catch a use-after-free and an array bounds overread in the code.
 
-### Test with Valgrind
+## Test with Valgrind
 ```
 env CARGO_TARGET_$(rustc -vV | sed -n 's|host: ||p' | tr '[a-z]-' '[A-Z]_')_RUNNER="valgrind --track-origins=yes --error-exitcode=1" cargo test
+```
+
+## Analyze with Kani
+```
+# One-time setup
+cargo install --locked kani-verifier
+cargo kani setup
+
+# Run the analyzer
+cargo kani
 ```

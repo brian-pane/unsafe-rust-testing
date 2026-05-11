@@ -8,3 +8,6 @@ libc = "0.2.186"
 
 [build-dependencies]
 cc = "1.2.62"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

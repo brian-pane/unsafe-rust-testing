@@ -48,3 +48,15 @@ mod tests {
         assert_eq!(unsafe { checksum(s3.as_ptr()) }, 0);
     }
 }
+
+#[cfg(kani)]
+#[kani::proof]
+fn check_get_data() {
+    const SIZE: usize = 10;
+    let mut data = get_data(SIZE);
+    assert!(!data.is_null());
+    for i in 0..SIZE {
+        println!("data[{}] is {}", i, unsafe { *data });
+        data = unsafe { data.add(1) };
+    }
+}
