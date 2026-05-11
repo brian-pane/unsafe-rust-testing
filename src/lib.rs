@@ -40,7 +40,11 @@ mod tests {
     #[test]
     #[cfg(not(miri))]
     fn test_checksum() {
-        let s: [c_char; 5] = [100; 5];
-        assert_eq!(unsafe { checksum(s.as_ptr()) }, 500);
+        let s1: [c_char; 5] = [1, 2, 3, 4, 0];
+        let s2: [c_char; 5] = [100; 5];
+        let s3: [c_char; 5] = [0; 5];
+        assert_eq!(unsafe { checksum(s1.as_ptr()) }, 10);
+        assert_eq!(unsafe { checksum(s2.as_ptr()) }, 500);
+        assert_eq!(unsafe { checksum(s3.as_ptr()) }, 0);
     }
 }

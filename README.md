@@ -30,3 +30,8 @@ rustup +nightly component add miri
 MIRIFLAGS="-Zmiri-disable-isolation" cargo +nightly miri test --no-fail-fast
 ```
 This should catch a use-after-free and an array bounds overread in the code.
+
+### Test with Valgrind
+```
+env CARGO_TARGET_$(rustc -vV | sed -n 's|host: ||p' | tr '[a-z]-' '[A-Z]_')_RUNNER="valgrind --track-origins=yes --error-exitcode=1" cargo test
+```
