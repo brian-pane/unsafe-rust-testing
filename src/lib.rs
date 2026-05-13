@@ -1,19 +1,26 @@
-use std::ffi::{c_char, c_long};
+use std::ffi::c_char;
 
-use libc::{calloc, free};
+use libc::{calloc, free, size_t};
 
 unsafe extern "C" {
-    pub fn checksum(data: *const c_char) -> c_long;
+    pub fn write_buffer(data: *mut c_char, size: size_t, pattern: c_char);
 }
 
-pub fn get_data(size: usize) -> *const u8 {
+pub fn get_buffer(size: usize) -> *const u8 {
     let buf = unsafe { calloc(size as _, 1) };
     unsafe { free(buf as _) };
     buf as _
 }
 
-pub fn get_length(data: &[u8]) -> usize {
-    unsafe { libc::strlen(data.as_ptr().cast()) }
+/// # Safety
+///
+/// `addr` must point to at least `size` initialized and readable bytes.
+pub unsafe fn read_buffer(addr: *const u8, size: usize) -> Vec<u8> {
+    let mut copy = Vec::with_capacity(size);
+    let dest = copy.as_mut_ptr();
+    unsafe { core::ptr::copy_nonoverlapping(addr, dest, size) };
+    unsafe { copy.set_len(size) };
+    copy
 }
 
 #[cfg(test)]
@@ -21,9 +28,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_data() {
+    fn test_use_after_free() {
         const SIZE: usize = 10;
-        let mut data = get_data(SIZE);
+        let mut data = get_buffer(SIZE);
         assert!(!data.is_null());
         for i in 0..SIZE {
             println!("data[{}] is {}", i, unsafe { *data });
@@ -32,31 +39,40 @@ mod tests {
     }
 
     #[test]
-    fn test_get_length() {
-        let buf = ['a' as u8; 5];
-        assert_eq!(get_length(&buf), 5);
+    fn test_read_overflow() {
+        let buf1 = [0, 1, 2, 3, 4];
+        let buf2 = [0, 0, 0, 0, 0];
+
+        // Read within the bounds of a slice
+        assert_eq!(
+            unsafe { read_buffer(buf1.as_ptr(), 5) }.as_slice(),
+            &[0, 1, 2, 3, 4]
+        );
+        assert_eq!(
+            unsafe { read_buffer(buf2.as_ptr(), 5) }.as_slice(),
+            &[0, 0, 0, 0, 0]
+        );
+
+        // Read beyond the bounds of a slice
+        assert_eq!(
+            unsafe { read_buffer(buf1.as_ptr(), 6) }.as_slice(),
+            &[0, 1, 2, 3, 4, 0]
+        );
     }
 
     #[test]
-    #[cfg(not(miri))]
-    fn test_checksum() {
-        let s1: [c_char; 5] = [1, 2, 3, 4, 0];
-        let s2: [c_char; 5] = [100; 5];
-        let s3: [c_char; 5] = [0; 5];
-        assert_eq!(unsafe { checksum(s1.as_ptr()) }, 10);
-        assert_eq!(unsafe { checksum(s2.as_ptr()) }, 500);
-        assert_eq!(unsafe { checksum(s3.as_ptr()) }, 0);
-    }
-}
+    fn test_write_overflow() {
+        let mut buf1 = [0u8; 5];
+        let mut buf2 = [0u8; 5];
 
-#[cfg(kani)]
-#[kani::proof]
-fn check_get_data() {
-    const SIZE: usize = 10;
-    let mut data = get_data(SIZE);
-    assert!(!data.is_null());
-    for i in 0..SIZE {
-        println!("data[{}] is {}", i, unsafe { *data });
-        data = unsafe { data.add(1) };
+        // Write within the bounds of a slice
+        unsafe { write_buffer(buf1.as_mut_ptr().cast(), 5, 'a' as _) };
+        unsafe { write_buffer(buf2.as_mut_ptr().cast(), 5, 'b' as _) };
+        assert_eq!(buf1, ['a' as u8; 5]);
+        assert_eq!(buf2, ['b' as u8; 5]);
+
+        // Write beyond the bounds of a slice
+        unsafe { write_buffer(buf1.as_mut_ptr().cast(), 6, 'c' as _) };
+        assert_eq!(buf1, ['c' as u8; 5]);
     }
 }
