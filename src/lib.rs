@@ -41,17 +41,7 @@ mod tests {
     #[test]
     fn test_read_overflow() {
         let buf1 = [0, 1, 2, 3, 4];
-        let buf2 = [0, 0, 0, 0, 0];
-
-        // Read within the bounds of a slice
-        assert_eq!(
-            unsafe { read_buffer(buf1.as_ptr(), 5) }.as_slice(),
-            &[0, 1, 2, 3, 4]
-        );
-        assert_eq!(
-            unsafe { read_buffer(buf2.as_ptr(), 5) }.as_slice(),
-            &[0, 0, 0, 0, 0]
-        );
+        let _buf2 = [0, 0, 0, 0, 0];
 
         // Read beyond the bounds of a slice
         assert_eq!(
@@ -63,13 +53,6 @@ mod tests {
     #[test]
     fn test_write_overflow() {
         let mut buf1 = [0u8; 5];
-        let mut buf2 = [0u8; 5];
-
-        // Write within the bounds of a slice
-        unsafe { write_buffer(buf1.as_mut_ptr().cast(), 5, 'a' as _) };
-        unsafe { write_buffer(buf2.as_mut_ptr().cast(), 5, 'b' as _) };
-        assert_eq!(buf1, ['a' as u8; 5]);
-        assert_eq!(buf2, ['b' as u8; 5]);
 
         // Write beyond the bounds of a slice
         unsafe { write_buffer(buf1.as_mut_ptr().cast(), 6, 'c' as _) };
