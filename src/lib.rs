@@ -59,3 +59,11 @@ mod tests {
         assert_eq!(buf1, ['c' as u8; 5]);
     }
 }
+
+#[cfg(kani)]
+#[kani::proof]
+fn check_read_overflow() {
+    let buf1 = [0, 1, 2, 3, 4];
+    let size = kani::any();
+    unsafe { read_buffer(buf1.as_ptr(), size) };
+}
