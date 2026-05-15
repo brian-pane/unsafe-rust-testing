@@ -37,7 +37,7 @@ env CARGO_TARGET_$(rustc -vV | sed -n 's|host: ||p' | tr '[a-z]-' '[A-Z]_')_RUNN
 ```
 
 ## Test with ASAN
-```angular2html
+```
 # One-time setup
 rustup toolchain install nightly
 
@@ -45,6 +45,13 @@ rustup toolchain install nightly
 # You may need to change "llvm-symbolizer-21" to a different version, depending
 # on the LLVM version installed on your system.
 env ASAN_SYMBOLIZER_PATH=$(which llvm-symbolizer-21) ASAN_OPTIONS=halt_on_error=0 RUSTFLAGS=-Zsanitizer=address cargo +nightly test
+```
+
+## Run fuzz tests
+```
+cargo +nightly fuzz run get_buffer -- -max_total_time=10
+cargo +nightly fuzz run read_buffer -- -max_total_time=10
+cargo +nightly fuzz run write_buffer -- -max_total_time=10
 ```
 
 ## Analyze with Kani

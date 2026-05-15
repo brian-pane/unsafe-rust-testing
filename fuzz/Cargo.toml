@@ -1,0 +1,35 @@
+[package]
+name = "unsafe-rust-testing-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.unsafe-rust-testing]
+path = ".."
+
+[[bin]]
+name = "get_buffer"
+path = "fuzz_targets/get_buffer.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "read_buffer"
+path = "fuzz_targets/read_buffer.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "write_buffer"
+path = "fuzz_targets/write_buffer.rs"
+test = false
+doc = false
+bench = false
