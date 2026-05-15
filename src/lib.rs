@@ -62,8 +62,30 @@ mod tests {
 
 #[cfg(kani)]
 #[kani::proof]
+fn check_use_after_free() {
+    let size = kani::any();
+    let mut data = get_buffer(size);
+    assert!(!data.is_null());
+    let mut sum = 0i32;
+    for _ in 0..size {
+        sum += unsafe { *data } as i32;
+        data = unsafe { data.add(1) };
+    }
+    assert!(sum >= 0);
+}
+
+#[cfg(kani)]
+#[kani::proof]
 fn check_read_overflow() {
     let buf1 = [0, 1, 2, 3, 4];
     let size = kani::any();
     unsafe { read_buffer(buf1.as_ptr(), size) };
+}
+
+#[cfg(kani)]
+#[kani::proof]
+fn check_write_overflow() {
+    let mut buf1 = [0, 1, 2, 3, 4];
+    let size = kani::any();
+    unsafe { write_buffer(buf1.as_mut_ptr().cast(), size, 'c' as _) };
 }
