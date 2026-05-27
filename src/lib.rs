@@ -1,3 +1,5 @@
+use core::hint::black_box;
+
 use libc::size_t;
 
 unsafe extern "C" {
@@ -20,6 +22,11 @@ pub unsafe fn read_buffer(addr: *const u8, size: usize) -> u64 {
     sum
 }
 
+fn freed_stack_ref() -> *const u8 {
+    let buf = [0, 1, 2, 3, 4];
+    buf.as_ptr()
+}
+
 /// Overwrite each byte of a buffer with a specified value.
 ///
 /// # Safety
@@ -35,8 +42,6 @@ pub unsafe fn write_buffer(addr: *mut u8, size: usize, pattern: u8) {
 
 #[cfg(test)]
 mod tests {
-    use core::hint::black_box;
-
     use super::*;
 
     #[test]
@@ -99,11 +104,6 @@ mod tests {
         assert_eq!(*buf1, [b'!'; 5]);
     }
 
-    fn freed_stack_ref() -> *const u8 {
-        let buf = [0, 1, 2, 3, 4];
-        buf.as_ptr()
-    }
-
     #[test]
     fn use_after_free_stack_rust() {
         let addr = freed_stack_ref();
@@ -135,30 +135,50 @@ mod tests {
 
 #[cfg(kani)]
 #[kani::proof]
-fn check_use_after_free() {
-    let size = kani::any();
-    let mut data = allocate_buffer(size);
-    assert!(!data.is_null());
-    let mut sum = 0i32;
-    for _ in 0..size {
-        sum += unsafe { *data } as i32;
-        data = unsafe { data.add(1) };
-    }
-    assert!(sum >= 0);
-}
-
-#[cfg(kani)]
-#[kani::proof]
-fn check_read_overflow() {
+fn check_read_overflow_stack_rust() {
     let buf1 = [0, 1, 2, 3, 4];
     let size = kani::any();
-    unsafe { read_buffer(buf1.as_ptr(), size) };
+    black_box(unsafe { read_buffer(buf1.as_ptr(), size) });
 }
 
 #[cfg(kani)]
 #[kani::proof]
-fn check_write_overflow() {
+fn check_read_overflow_heap_rust() {
+    let buf1 = Box::new([0, 1, 2, 3, 4]);
+    let size = kani::any();
+    black_box(unsafe { read_buffer(buf1.as_ptr(), size) });
+}
+
+#[cfg(kani)]
+#[kani::proof]
+fn check_write_overflow_stack_rust() {
     let mut buf1 = [0, 1, 2, 3, 4];
     let size = kani::any();
-    unsafe { write_buffer(buf1.as_mut_ptr().cast(), size, 'c' as _) };
+    unsafe { write_buffer(buf1.as_mut_ptr(), size, b'!') };
+}
+
+#[cfg(kani)]
+#[kani::proof]
+fn check_write_overflow_heap_rust() {
+    let mut buf1 = Box::new([0, 1, 2, 3, 4]);
+    let size = kani::any();
+    unsafe { write_buffer(buf1.as_mut_ptr(), size, b'!') };
+}
+
+#[cfg(kani)]
+#[kani::proof]
+fn check_use_after_free_stack_rust() {
+    let addr = freed_stack_ref();
+    let size = kani::any();
+    black_box(unsafe { read_buffer(addr, size) });
+}
+
+#[cfg(kani)]
+#[kani::proof]
+fn check_use_after_free_heap_rust() {
+    let buf1 = Box::new([0, 1, 2, 3, 4]);
+    let addr = buf1.as_ptr();
+    drop(buf1);
+    let size = kani::any();
+    black_box(unsafe { read_buffer(addr, size) });
 }
