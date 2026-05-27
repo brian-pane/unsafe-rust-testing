@@ -14,22 +14,58 @@ libfuzzer-sys = "0.4"
 path = ".."
 
 [[bin]]
-name = "get_buffer"
-path = "fuzz_targets/get_buffer.rs"
+name = "read_heap_rust"
+path = "fuzz_targets/read_heap_rust.rs"
 test = false
 doc = false
 bench = false
 
 [[bin]]
-name = "read_buffer"
-path = "fuzz_targets/read_buffer.rs"
+name = "read_heap_c"
+path = "fuzz_targets/read_heap_c.rs"
 test = false
 doc = false
 bench = false
 
 [[bin]]
-name = "write_buffer"
-path = "fuzz_targets/write_buffer.rs"
+name = "read_stack_rust"
+path = "fuzz_targets/read_stack_rust.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "read_stack_c"
+path = "fuzz_targets/read_stack_c.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "write_heap_rust"
+path = "fuzz_targets/write_heap_rust.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "write_heap_c"
+path = "fuzz_targets/write_heap_c.rs"
+test = false
+doc = false
+bench = false
+
+
+[[bin]]
+name = "write_stack_rust"
+path = "fuzz_targets/write_stack_rust.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "write_stack_c"
+path = "fuzz_targets/write_stack_c.rs"
 test = false
 doc = false
 bench = false
