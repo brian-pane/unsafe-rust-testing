@@ -1,16 +1,8 @@
-use libc::{calloc, free, size_t};
+use libc::size_t;
 
 unsafe extern "C" {
     pub fn read_buffer_c(data: *const u8, size: size_t) -> u64;
     pub fn write_buffer_c(data: *mut u8, size: size_t, pattern: u8);
-}
-
-pub fn allocate_buffer(size: usize) -> *const u8 {
-    unsafe { calloc(size as _, 1) }.cast()
-}
-
-pub fn free_buffer(buf: *const u8) {
-    unsafe { free(buf as _) };
 }
 
 /// Read the bytes of a buffer and return a sum of their values.
@@ -139,19 +131,6 @@ mod tests {
         drop(buf1);
         black_box(unsafe { read_buffer_c(addr, 5) });
     }
-
-    /*
-    #[test]
-    fn test_use_after_free() {
-        const SIZE: usize = 10;
-        let mut data = allocate_buffer(SIZE);
-        assert!(!data.is_null());
-        for i in 0..SIZE {
-            println!("data[{}] is {}", i, unsafe { *data });
-            data = unsafe { data.add(1) };
-        }
-    }
-     */
 }
 
 #[cfg(kani)]
