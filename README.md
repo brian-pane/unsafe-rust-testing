@@ -44,7 +44,8 @@ rustup toolchain install nightly
 # Run the tests
 # You may need to change "llvm-symbolizer-21" to a different version, depending
 # on the LLVM version installed on your system.
-env ASAN_SYMBOLIZER_PATH=$(which llvm-symbolizer-21) ASAN_OPTIONS=halt_on_error=0 RUSTFLAGS=-Zsanitizer=address cargo +nightly test
+cargo clean
+env ASAN_SYMBOLIZER_PATH=$(which llvm-symbolizer-21) ASAN_OPTIONS=halt_on_error=0 RUSTFLAGS=-Zsanitizer=address cargo +nightly test --features=asan
 ```
 
 ## Run fuzz tests
